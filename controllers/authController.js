@@ -7,25 +7,42 @@ const route = express.Router();
 
 const AuthController = {
   login: async (req, res) => {
-    let { email, password } = req.body;
-    let obj = { email, password };
+    const { email, password } = req.body;
+    const obj = { email, password };
 
-    let checking = userModel
+    userModel
       .findOne({ email })
-      .then(async (result) => {
-        let comparing = await bcrypt.compare(obj.password, result.password);
-        if (comparing) {
-          let token = jwt.sign({ ...result }, process.env.SECURE);
-          res.send(
-            sendResponse(true, { user: result, token }, "Login Successfully")
-          );
+      .then(async (user) => {
+        let isConfirm = await bcrypt.compare(obj.password, user.password);
+        if (isConfirm) {
+          res.send(sendResponse(true, user, "Login Successfully"));
         } else {
-          res.send(sendResponse(false, null, "Internal Error")).status(400);
+          res.send(sendResponse(false, null, "Credential Error"));
         }
       })
-      .catch((e) => {
-        res.send(sendResponse(false, null, "error", e)).status(400);
+      .catch((err) => {
+        res.send(sendResponse(false, err, "User Doesn't Exist"));
       });
+
+    // let { email, password } = req.body;
+    // let obj = { email, password };
+
+    // let checking = userModel
+    //   .findOne({ email })
+    //   .then(async (result) => {
+    //     let comparing = await bcrypt.compare(obj.password, result.password);
+    //     if (comparing) {
+    //       let token = jwt.sign({ ...result }, process.env.SECURE);
+    //       res.send(
+    //         sendResponse(true, { user: result, token }, "Login Successfully")
+    //       );
+    //     } else {
+    //       res.send(sendResponse(false, null, "Internal Error")).status(400);
+    //     }
+    //   })
+    //   .catch((e) => {
+    //     res.send(sendResponse(false, null, "error", e)).status(400);
+    //   });
   },
   signup: async (req, res) => {
     let { userName, email, password } = req.body;
